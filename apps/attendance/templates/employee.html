@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee</title>
+</head>
+<body>
+<p>{{employee_records}}</p>
+{% if is_manager %}
+<a href="{% url 'attendance:man_dash' %}">Manager Dashboard</a>
+{% endif %}
+{% if is_admin %}
+<a href="{% url 'attendance:man_dash' %}">Admin Dashboard</a>
+{% endif %}
+</body>
+</html>

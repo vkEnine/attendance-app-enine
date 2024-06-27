@@ -1,6 +1,6 @@
 DJANGO_SECRET_KEY="thequickbrownfoxjumpsoverthelazydog"
 DJANGO_DEBUG=true
-# DJANGO_ALLOWED_HOSTS=""
+# DJANGO_ALLOWED_HOSTS="localhost"
 # DJANGO_ADMINS="root@qux.dev"
 # DJANGO_MANAGERS="root@qux.dev"
 # DJANGO_DEFAULT_FROM_EMAIL=""
