@@ -6,6 +6,8 @@
     <title>Employee</title>
 </head>
 <body>
+<p>EARNED:{{earned}}</p>
+<p>SICK:{{sick}}</p>
 <p>{{employee_records}}</p>
 {% if is_manager %}
 <a href="{% url 'attendance:man_dash' %}">Manager Dashboard</a>
