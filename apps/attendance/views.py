@@ -5,23 +5,9 @@ from django.contrib.auth import authenticate,login,logout
 from .models import *
 from .forms import LeaveRequestForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+import json
+from django.core.exceptions import ObjectDoesNotExist
 
-# Create your views here.
-# class LoginView(TemplateView):
-#     template_name = "login_page.html"
-#     def post(self,request):
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         user = authenticate(request,username=username,password=password)
-#         print("---------------------")
-#         print(user)
-#         print("---------------------")
-#         if user is not None:
-#             form = login(request,user)
-#             return redirect("attendance:emp_dash")
-#         else:
-#             context = {"error":"Invalid Username or Password!"}
-#         return render(request,self.template_name,context)
     
 class EmployeeDashboard(LoginRequiredMixin,TemplateView):
     template_name = "employee_dashboard.html"
@@ -36,9 +22,9 @@ class EmployeeDashboard(LoginRequiredMixin,TemplateView):
         user= self.request.user
         is_manager = user.manager.exists()
         sick,earned,unpaid = self.calculate_leaves()
-        leave_requests = LeaveRequest.objects.filter(employee=self.request.user)
-        # print(sick,earned)
-        context = {"form":LeaveRequestForm,"leave_requests":leave_requests,"num_requests":len(leave_requests)!=0,"employee_records":Attendance.objects.filter(employee=user).order_by("-fordate"),"is_manager":is_manager,"is_admin":user.is_superuser,"sick":9-sick,"earned":15-earned,"unpaid":unpaid}
+        leave_requests = LeaveRequest.objects.filter(employee=self.request.user).order_by("-start_date")
+        # print(user.)
+        context = {"form":LeaveRequestForm,"leave_requests":leave_requests,"num_requests":len(leave_requests)!=0,"employee_records":Attendance.objects.filter(employee=user).order_by("-fordate"),"is_manager":is_manager,"is_admin":user.is_superuser,"sick":9-sick,"earned":15-earned,"unpaid":unpaid,"user":str(user).capitalize()}
         # print(context)
         return context
     def post(self,request):
@@ -52,14 +38,46 @@ class EmployeeDashboard(LoginRequiredMixin,TemplateView):
         )
         new_request.save()
         return redirect(request.path_info)
+
     
 
 class ManagerDashboard(TemplateView):
-    template_name = "manager.html"
+    template_name = "mark_attendance.html"
     def get_context_data(self,**kwargs):
-        members = Employee.objects.filter(manager=self.request.user).values('user')
-        context = {"members":members,"manager_records":Attendance.objects.filter(employee__in=members)}
+        members = Employee.objects.filter(manager=self.request.user)
+        print(members)
+        status = Status.objects.all()
+        attendance_records = Attendance.objects.filter(employee__in=members.values('user'))
+        print(attendance_records)
+        context = {"status_options":status,"employees":members,"records":attendance_records,"is_manager":True,"is_admin":self.request.user.is_superuser}
         return context
+    
+    def post(self,request):
+        '''
+        Method to post data into database
+        '''
+        attendance_date,records = request.POST.get("attendance_date"),json.loads(request.POST.get("records"))
+        for record in records:
+            print(attendance_date,record)
+            remark = record['remark'] if record['remark'] != "" else str(record['status'])
+            print(remark)
+            user = User.objects.get(username=record['user'])
+            print(user,Status.objects.all())
+            status = Status.objects.get(status=record['status'])
+            print(status)
+            try:
+                existing_record = Attendance.objects.filter(employee=user).get(fordate=attendance_date)
+                print("existing",existing_record.status)
+                existing_record.status = status
+                existing_record.remarks = remark
+                existing_record.save()
+            except ObjectDoesNotExist:
+                new_record = Attendance.objects.create(employee=user,fordate=attendance_date,status=status,remarks=remark)
+                new_record.save()
+                # existing_record.save()
+                # print("new",new_record)
+            # update_record.save()
+        return redirect(request.path_info)
     
 class LeaveApplicationCreateView(CreateView):
     template_name = "leave_request_form.html"

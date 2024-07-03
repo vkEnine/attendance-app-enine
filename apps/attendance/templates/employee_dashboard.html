@@ -2,6 +2,11 @@
 {% block title %}<title>Dashboard</title>{% endblock %}
 {% block styles %}
 <style>
+    h1,h2{
+        font-family: "EB Garamond", serif;
+        font-weight: medium;
+    }
+
     .clicked {
         background-color: black;
         color: white;
@@ -20,9 +25,9 @@
 {% block content %}
 <div class="container d-flex-column text-center justify-content-center align-items-center gap-5 py-5"
     style="height: 90vh;">
-    <h1>Employee Dashboard</h1>
+    <h1>Welcome, {{user}}!</h1>
     <!-- leave balance cards -->
-    <div class="row d-flex justify-content-evenly pt-5 ">
+    <div class="row d-flex justify-content-between pt-5 px-3">
         <div class="col-md-12 card border-success mb-3" style="max-width: 18rem;">
             <div class="card-body text-success">
                 <h5 class="card-title">Earned (Left)</h5>
@@ -43,10 +48,11 @@
         </div>
 
     </div>
+    <h2 class="pt-3 d-flex align-items-center">Here are your records,</h2>
     <div class="card mt-5">
         <!-- toggle buttons -->
         <div class="shadow card-body">
-            <div class="mt-3">
+            <div class="mt-2 mb-5">
                 <div id="buttonGroup" class="btn-group" role="group" aria-label="Button group">
                     <button type="button" id="attendance-btn" class="btn btn-outline-dark clicked">Attendance
                         Records</button>
@@ -54,9 +60,9 @@
                 </div>
             </div>
             <!-- table -->
-            <div id="attendance-table" class="mt-4">
+            <div id="attendance-table" class="pt-2 table-responsive">
                 <!-- <input type="date" class="mb-2" style="float: right;"> -->
-                <table class="table table-responsive border">
+                <table class="table border">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
@@ -76,7 +82,7 @@
                 </table>
             </div>
 
-            <div id="requests-table" class="mt-4 hidden">
+            <div id="requests-table" class="hidden">
                 <button id="request-form-btn" class="btn btn-outline-success mb-2" style="float:right;">New request
                     <i class="bi bi-plus"></i></button>
                 {% if num_requests %}
@@ -109,12 +115,25 @@
             <div id="request-form" class="my-5 hidden">
                 <form method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <button id="formsubmit" class="btn btn-success" type="submit">Save</button>
-                </form>
+                    {% for field in form %}
+                    <div class="fieldWrapper py-2">
+                        <label for="{{field.label}}" class="px-2">{{field.label}}:</label>
+                        {{field}}
+                        {% if field.errors %}
+                        <ul class="errorlist">
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button id="formsubmit" class="btn btn-success mt-2" type="submit">Save</button>
             </div>
+            </form>
         </div>
     </div>
+</div>
 </div>
 <script>
     $(document).ready(function () {
@@ -139,7 +158,7 @@
             $('#request-form').addClass('hidden');
         });
         $('#request-form-btn').click(function () {
-            $('#requests-btn').removeClass('clicked');
+            // $('#requests-btn').removeClass('clicked');
             $('#attendance-btn').removeClass('clicked');
             $('#requests-table').addClass('hidden');
             $('#request-form').removeClass('hidden');
@@ -150,4 +169,4 @@
         })
     });
 </script>
-{% endblock  %}
+{% endblock %}
