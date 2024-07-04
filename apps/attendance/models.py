@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from qux.models import QuxModel
 from qux.utils.date import eomonth,fomonth
+from django.core.mail import send_mail
+from project.settings import settings
 
 # Create your models here.
 class Employee(QuxModel):
@@ -85,6 +87,26 @@ class LeaveRequest(QuxModel):
     start_date = models.DateField()
     end_date = models.DateField()
     is_approved = models.BooleanField(default=None, blank=True, null=True)
+
+    @classmethod
+    def send_leave_email(cls,username,sender_email,manager_email):
+        send_mail(
+            f"New Leave Request by {username}",
+            f"{username} has initiated a new leave request. You can approve or reject it by logging in to the app.",
+            settings.DEFAULT_FROM_EMAIL,
+            [manager_email]
+
+        )
+
+    def save(self,**kwargs):
+        manager_email = Employee.objects.get(user=self.employee).manager.email
+        print(self.employee.username,self.employee.email,manager_email)
+        try:
+            LeaveRequest.send_leave_email(self.employee.username,self.employee.email,manager_email)
+        except  Exception as e:
+            print("email could not be sent!")
+            print(e)
+        return super().save(**kwargs)
 
     def __str__(self):
         return str(self.employee) + " " + str(self.start_date) + " " + str(self.end_date)

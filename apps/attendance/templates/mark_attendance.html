@@ -1,146 +1,301 @@
 {% extends 'base.html' %}
+
 {% block title %}<title>Attendance</title>{% endblock %}
+
 {% block content %}
+
     <div class="container">
+
         <div class="table-responsive">
+
             <div class="d-flex justify-content-between py-3">
+
                 <div class="fs-2">Attendance</div>
+
                 <div>
+
                     <button type="button"
+
                             class="btn btn-outline-success"
+
                             onclick="submitAttendance()">Submit</button>
+
                 </div>
+
             </div>
+
             <div class="d-flex justify-content-end">
+
                 <div class="d-flex">
+
                     <div class="dropdown me-2">
+
                         <button class="btn btn-outline-dark dropdown-toggle"
+
                                 type="button"
+
                                 data-bs-toggle="dropdown"
+
                                 id="statusDropdown"
+
                                 aria-expanded="false">Status</button>
+
                         <ul class="dropdown-menu" aria-labelledby="statusDropdown">
-                        {% for option in status_options %}
-                            <li>
-                                <a class="dropdown-item" value="value" href="#" data-status="{{option.status}}">{{option.status}}</a>
-                            </li>
-                        {% endfor %}
+
+                            {% for option in status_options %}
+
+                                <li>
+
+                                    <a class="dropdown-item"
+
+                                       value="value"
+
+                                       href="#"
+
+                                       data-status="{{ option.status }}">{{ option.status }}</a>
+
+                                </li>
+
+                            {% endfor %}
+
                         </ul>
+
                     </div>
+
                     <div>
-                        <input type="date" class="form-control" id="attendanceDate" value="{{date}}" onchange="pastRecords(this.value)">
+
+                        <input type="date"
+
+                               class="form-control"
+
+                               id="attendanceDate"
+
+                               value="{{ date }}"
+
+                               onchange="pastRecords(this.value)">
+
                     </div>
+
                 </div>
+
             </div>
+
             <table class="table">
+
                 <thead>
+
                     <tr>
+
                         <th>
+
                             <input type="checkbox" id="selectAllCheckbox" onclick="toggle(this)">
+
                         </th>
+
                         <th>Name</th>
+
                         <th>Remark</th>
+
                     </tr>
+
                 </thead>
+
                 {% comment %} <h1>{{employees}}</h1> {% endcomment %}
+
                 {% if records %}
+
                     <tbody>
+
                         {% for employee in employees %}
+
                             <tr>
+
                                 <td>
+
                                     <input type="checkbox" class="record-checkbox">
+
                                 </td>
+
                                 <td>{{ employee.user }}</td>
+
                                 <td>
+
                                     <input type="text" class="form-control" placeholder="{{ record.remark }}">
+
                                 </td>
+
                             </tr>
+
                         {% endfor %}
+
                     </tbody>
+
                 {% else %}
+
                     <tbody>
-                        {% comment %} {% for employee in employees %}
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="record-checkbox">
-                            </td>
-                            <td>{{employee}}</td>
-                            <td>
-                                <input type="text" class="form-control">
-                            </td>
-                            <td>Pending</td>
-                        </tr>
+
+                        {% comment %}{% for employee in employees %}
+
+                            <tr>
+
+                                <td>
+
+                                    <input type="checkbox" class="record-checkbox">
+
+                                </td>
+
+                                <td>{{ employee }}</td>
+
+                                <td>
+
+                                    <input type="text" class="form-control">
+
+                                </td>
+
+                                <td>Pending</td>
+
+                            </tr>
+
                         {% endfor %} {% endcomment %}
+
                     </tbody>
+
                 {% endif %}
+
             </table>
+
         </div>
+
     </div>
+
     <script src="https://code.jquery.com/jquery-3.7.1.js"
+
             integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+
             crossorigin="anonymous"></script>
+
     <script>
+
         $(document).ready(function () {
-            $('#manager').addClass('active');
-            $('#home').removeClass('active');
-            $('#admin').removeClass('active');
+
     $('.dropdown-menu a').on('click', function () {
+
         var selectedText = $(this).text();
+
         var selectedStatus = $(this).data('status');
 
+
+
         // Set the selected status as the button text
+
         $(this).closest('.dropdown').find('.dropdown-toggle').html(selectedText);
 
+
+
         // Store the selected status in a data attribute of the dropdown button
+
         $(this).closest('.dropdown').find('.dropdown-toggle').data('selected-status', selectedStatus);
 
+
+
         // Add 'active' class to the clicked item for visual feedback
+
         $(this).closest('.dropdown-menu').find('.dropdown-item').removeClass('active');
+
         $(this).addClass('active');
+
     });
+
 });
 
+
+
         function toggle(source) {
+
             var checkboxes = document.getElementsByClassName('record-checkbox');
+
             for (var i = 0; i < checkboxes.length; i++) {
+
                 checkboxes[i].checked = source.checked;
+
             }
+
         };
 
+
+
+
+
         function submitAttendance() {
+
             var selectedStatus = $('.dropdown-menu a.active').data('status');
+
             var attendanceDate = $('#attendanceDate').val();
+
             var selectedRecords = [];
+
             console.log("status",selectedStatus);
 
+
+
             $('.record-checkbox:checked').each(function () {
+
                 var name = $(this).closest('tr').find('td:nth-child(2)').text().trim();
+
                 var remark = $(this).closest('tr').find('td:nth-child(3) input').val().trim();
+
                 selectedRecords.push({
+
                     user: name,
+
                     status: selectedStatus,
+
                     remark: remark
+
                 });
+
             });
 
+
+
             // AJAX call
+
             $.ajax({
+
                 type: 'POST',
-                url: '{% url "attendance:man_dash" %}',  // Replace with your Django view URL
+
+                url: '{% url "attendance:markAttendance" %}',  // Replace with your Django view URL
+
                 data: {
+
                     'attendance_date': attendanceDate,
+
                     'records': JSON.stringify(selectedRecords),
+
                     'csrfmiddlewaretoken': '{{ csrf_token }}',
+
                 },
+
                 success: function (response) {
+
                     // Handle success
+
                     console.log('Data submitted successfully');
+
                 },
+
                 error: function (error) {
+
                     // Handle errors
+
                     console.error('Error submitting data:', error);
+
                 }
+
             });
+
         }
+
     </script>
+
 {% endblock %}

@@ -56,7 +56,9 @@
                 <div id="buttonGroup" class="btn-group" role="group" aria-label="Button group">
                     <button type="button" id="attendance-btn" class="btn btn-outline-dark clicked">Attendance
                         Records</button>
-                    <button type="button" id="requests-btn" class="btn btn-outline-dark">Leave Requests</button>
+                        {% if not is_admin %}
+                            <button type="button" id="requests-btn" class="btn btn-outline-dark">Leave Requests</button>
+                        {% endif %}
                 </div>
             </div>
             <!-- table -->
